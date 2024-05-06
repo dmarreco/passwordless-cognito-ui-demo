@@ -1,43 +1,24 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { Amplify, Auth } from 'aws-amplify'
-import Nav from '../components/NavComponent.vue'
-import Footer from '../components/FooterComponent.vue'
-import Chance from 'chance'
 
 Amplify.configure({
   Auth: {
-    region: 'eu-west-1',
-    userPoolId: 'eu-west-1_pGrFMP8ZY',
-    userPoolWebClientId: '497jneqd1e2lr99ud9mfghhf31',
-    mandatorySignIn: true
+    region: 'us-east-1',
+    userPoolId: 'us-east-1_keHTt6H7b',
+    userPoolWebClientId: '69at0qspalm5l7n885qr7eq898',
+    mandatorySignIn: false
   }
 })
 
 const email = ref('')
 const signInStep = ref('SEND_MAGIC_LINK')
-const isSignedUp = ref(false)
 const isSignedIn = ref(false)
 let cognitoUser
 
-async function signUp() {
-  try {
-    const chance = new Chance()
-    const password = chance.string({ length: 16 })
-    const signInResult = await Auth.signUp({
-      username: email.value,
-      password
-    })
-    console.log(signInResult.user)
-
-    isSignedUp.value = true
-  } catch (error) {
-    alert(error.message)
-  }
-}
 
 async function sendMagicLink() {
-  const response = await fetch('https://6yi47dij2c.execute-api.eu-west-1.amazonaws.com/dev/login', {
+  const response = await fetch('https://api.dev.gethomecloud.com/users/login-nopwd', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -49,7 +30,7 @@ async function sendMagicLink() {
     alert(`Failed to send magic link: ${err.message}`)
   })
 
-  if (response.status !== 202) {
+  if (response.status !== 204) {
     const responseBody = await response.json()
     alert(`Failed to send magic link: ${responseBody.message}`)
   } else {
@@ -73,6 +54,7 @@ async function answerCustomChallenge(token) {
     const challengeResult = await Auth.sendCustomChallengeAnswer(cognitoUser, token)
     console.log('challenge result')
     console.log(challengeResult)
+    isSignedIn.value = true
   } catch (error) {
     console.log(error)
     signInStep.value = 'SIGN_IN'
@@ -109,33 +91,12 @@ onMounted(async () => {
 </script>
 
 <template>
-  <Nav/>
 
   <div>
-    <h1 class="font-bold text-4xl mb-12">Passwordless authentication with magic links with Cognito</h1>
+    <h1 class="font-bold text-4xl mb-12"></h1>
 
     <div class="w-1/2 flex-row mb-10">
-      <h2 class="font-semibold text-xl">Step 1. register a user (if you haven't already)</h2>
-
-      <input 
-        v-if="!isSignedUp"
-        v-model="email" 
-        type="text"
-        class="mt-2 w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-        placeholder="Email address">
-
-      <button 
-        v-if="!isSignedUp"
-        @click="signUp" 
-        class="mt-2 py-2 px-4 border border-transparent font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-        Create user
-      </button>
-
-      <p v-if="isSignedUp">Great, the user has been created in Cognito.</p>
-    </div>
-
-    <div class="w-1/2 flex-row mb-10">
-      <h2 class="font-semibold text-xl">Step 2. sign in with magic links</h2>
+      <h2 class="font-semibold text-xl">sign in with magic links</h2>
 
       <input 
         v-model="email" 
@@ -153,7 +114,7 @@ onMounted(async () => {
     </div>
 
     <div v-if="isSignedIn" class="w-1/2 flex-row mb-10">
-      <h2 class="font-semibold text-xl">Step 3. you're signed in! Sign out and try again.</h2>
+      <h2 class="font-semibold text-xl">You're signed in! Sign out and try again.</h2>
 
       <button v-if="isSignedIn"
         @click="signOut" 
@@ -163,5 +124,5 @@ onMounted(async () => {
     </div>
   </div>
 
-  <Footer/>
+
 </template>

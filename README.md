@@ -22,14 +22,8 @@ npm install
 npm run dev
 ```
 
-### Compile and Minify for Production
+### Open magic link
 
-```sh
-npm run build
-```
+http://localhost:5173/magic-link
 
-### Lint with [ESLint](https://eslint.org/)
 
-```sh
-npm run lint
-```
